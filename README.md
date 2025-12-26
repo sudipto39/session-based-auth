@@ -28,7 +28,7 @@ This project demonstrates how to build a **scalable, secure, production-ready au
 - bcrypt
 - dotenv
 
-
+```
 
 ## 📁 Project Structure
 
@@ -54,7 +54,7 @@ This project demonstrates how to build a **scalable, secure, production-ready au
 
 
 
-
+```
 
 ## 🔑 Authentication Flow
 
