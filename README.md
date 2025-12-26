@@ -120,6 +120,7 @@ http://localhost:5000
 | POST   | /auth/logout   | Logout user              |
 | GET    | /auth/me       | Get current user session |
 
+```
 🔐 Security Practices
 -HTTP-only cookies
 -Secure cookies in production
@@ -139,8 +140,10 @@ http://localhost:5000
 -Express session lifecycle
 -Scalable backend architecture
 
+```
 📜 License
 MIT License
+
 
 👨‍💻 Author
 Sudipto Gayen
