@@ -1,0 +1,31 @@
+{
+  "name": "session-based-auth",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sudipto39/session-based-auth.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/sudipto39/session-based-auth/issues"
+  },
+  "homepage": "https://github.com/sudipto39/session-based-auth#readme",
+  "dependencies": {
+    "connect-redis": "^9.0.0",
+    "express": "^5.2.1",
+    "express-session": "^1.18.2",
+    "redis": "^5.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
