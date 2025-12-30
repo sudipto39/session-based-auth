@@ -1,20 +1,24 @@
 // app.js
 import express from "express";
 import sessionMiddleware from "./config/session.js";
-// later: import passport from "passport";
-// and your Google OAuth routes
+import passport from "./config/passport.js";
+import authRouter from "./routes/auth.routes.js";
 
 const app = express();
 
-// Body parsers 
+// Body parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Sessions (backed by Redis)
 app.use(sessionMiddleware);
 
-// later: app.use(passport.initialize());
-// later: app.use(passport.session());
+// Passport (must come after sessions)
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Auth routes (local + Google)
+app.use("/auth", authRouter);
 
 // Example test route
 app.get("/health", (req, res) => {

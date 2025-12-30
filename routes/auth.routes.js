@@ -1,39 +1,32 @@
+// routes/auth.routes.js
 import { Router } from "express";
-import passport from "passport";
+import passport from "../config/passport.js";
 import {
   register,
   login,
+  googleCallback,
   logout,
   me,
-  googleCallback,
 } from "../controllers/auth.controller.js";
 
 const router = Router();
 
-/**
- * Manual auth
- */
+// Local auth
 router.post("/register", register);
 router.post("/login", login);
 router.post("/logout", logout);
 router.get("/me", me);
 
-/**
- * Google OAuth
- */
+// Google OAuth: start flow
 router.get(
   "/google",
-  passport.authenticate("google", {
-    scope: ["profile", "email"],
-  })
+  passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
+// Google OAuth: callback
 router.get(
   "/google/callback",
-  passport.authenticate("google", {
-    failureRedirect: "/login",
-    session: true,
-  }),
+  passport.authenticate("google", { failureRedirect: "/login" }),
   googleCallback
 );
 

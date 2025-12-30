@@ -1,8 +1,9 @@
+// controllers/auth.controller.js
 import bcrypt from "bcrypt";
 import User from "../models/user.model.js";
 
 /**
- * Register user
+ * Register user (manual signup)
  */
 export const register = async (req, res) => {
   try {
@@ -12,6 +13,7 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
+    // Basic example; you can add stricter validation
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(409).json({ message: "User already exists" });
@@ -23,14 +25,16 @@ export const register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      // googleId: undefined  // user is local-only at this point
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "User registered successfully",
       userId: user._id,
     });
   } catch (error) {
-    res.status(500).json({ message: "Registration failed" });
+    console.error("Register error:", error);
+    return res.status(500).json({ message: "Registration failed" });
   }
 };
 
@@ -41,7 +45,10 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Find local or hybrid (local + Google) user by email
     const user = await User.findOne({ email });
+
+    // Either no user or user has no password (Google-only account)
     if (!user || !user.password) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -54,60 +61,81 @@ export const login = async (req, res) => {
     // Prevent session fixation
     req.session.regenerate((err) => {
       if (err) {
+        console.error("Session regenerate error (login):", err);
         return res.status(500).json({ message: "Session error" });
       }
 
+      // Minimal session payload; same for Google and local
       req.session.userId = user._id;
 
-      res.json({
+      return res.json({
         message: "Login successful",
       });
     });
   } catch (error) {
-    res.status(500).json({ message: "Login failed" });
+    console.error("Login error:", error);
+    return res.status(500).json({ message: "Login failed" });
   }
 };
 
 /**
  * Google OAuth success callback
- * (Passport puts user on req.user)
+ * (Passport puts user on req.user, after find-or-create in the strategy)
  */
 export const googleCallback = (req, res) => {
   const user = req.user;
 
+  if (!user) {
+    // Should not normally happen if passport.authenticate succeeded
+    return res.redirect("/login?error=oauth");
+  }
+
   req.session.regenerate((err) => {
     if (err) {
+      console.error("Session regenerate error (google):", err);
       return res.redirect("/login?error=session");
     }
 
+    // Keep the same session shape as manual login
     req.session.userId = user._id;
 
-    res.redirect("/dashboard");
+    return res.redirect("/dashboard");
   });
 };
 
 /**
- * Logout user
+ * Logout user (works for local + Google sessions)
  */
 export const logout = (req, res) => {
   req.session.destroy((err) => {
     if (err) {
+      console.error("Logout error:", err);
       return res.status(500).json({ message: "Logout failed" });
     }
 
     res.clearCookie("sid");
-    res.json({ message: "Logged out successfully" });
+    return res.json({ message: "Logged out successfully" });
   });
 };
 
 /**
- * Get current logged-in user
+ * Get current logged-in user (for both local + Google)
  */
 export const me = async (req, res) => {
-  if (!req.session.userId) {
-    return res.status(401).json({ message: "Not authenticated" });
-  }
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
-  const user = await User.findById(req.session.userId).select("-password");
-  res.json(user);
+    const user = await User.findById(req.session.userId).select("-password");
+    if (!user) {
+      // Session refers to a deleted user
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.json(user);
+  } catch (error) {
+    console.error("Me endpoint error:", error);
+    return res.status(500).json({ message: "Failed to fetch user" });
+  }
 };
