@@ -46,17 +46,20 @@ export const login = async (req, res) => {
     const { email, password } = req.body;
 
     // Find local or hybrid (local + Google) user by email
-    const user = await User.findOne({ email });
+     if (!email || !password) {
+    return nres.status(400).json({ message: "Missing required fields" });
+  }
+  const user = await User.findOne({ email }).select("+password");
 
     // Either no user or user has no password (Google-only account)
-    if (!user || !user.password) {
+    if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    const isCorrect = await user.correctPassword(password, user.password);
+  if (!isCorrect) {
+    return res.status(401).json({ message: "Incorrect email or password" });
+  }
 
     // Prevent session fixation
     req.session.regenerate((err) => {

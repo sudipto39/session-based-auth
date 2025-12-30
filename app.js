@@ -21,8 +21,15 @@ app.use(passport.session());
 app.use("/auth", authRouter);
 
 // Example test route
-app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
+function requireAuth(req, res, next) {
+  if (!req.session.userId) {
+    return res.status(401).json({ message: "Not authenticated" });
+  }
+  next();
+}
+
+app.get("/dashboard", requireAuth, (req, res) => {
+  res.send("Welcome to dashboard, userId = " + req.session.userId);
 });
 
 export default app;

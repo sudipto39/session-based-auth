@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
 const userSchema = new mongoose.Schema(
   {
@@ -48,6 +49,10 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+userSchema.methods.correctPassword = async function (candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
+}
 
 // Prevent model overwrite in dev (nodemon)
 const User = mongoose.model("User", userSchema);
